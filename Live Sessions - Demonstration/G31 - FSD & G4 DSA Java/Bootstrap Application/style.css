@@ -1,0 +1,15 @@
+.custom-h-80 {
+        height: 800px !important;
+}
+
+@media (min-width: 576px) {
+    .card-group {
+        margin: 50px;
+    }
+}
+
+@media (min-width: 576px) {
+    .card-group>.card+.card {
+        padding: 10px;
+    }
+}

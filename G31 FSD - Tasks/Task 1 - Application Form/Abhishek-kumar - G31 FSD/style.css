@@ -1,0 +1,390 @@
+
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #d0cfc8;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 11px;
+  color: #111;
+  display: flex;
+  justify-content: center;
+  padding: 30px 10px;
+}
+
+/* =====================
+   Page Container
+   ===================== */
+.page {
+  background: #fff;
+  width: 780px;
+  padding: 18px 22px;
+  border: 2px solid #222;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+}
+
+/* =====================
+   Header
+   ===================== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  border-bottom: 2px solid #222;
+  padding-bottom: 10px;
+  margin-bottom: 8px;
+}
+
+.header-left {
+  flex: 1.2;
+}
+
+.header-center {
+  flex: 1.5;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.header-right {
+  flex: 0.6;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.embassy-title {
+  font-weight: bold;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.embassy-subtitle {
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.address {
+  font-size: 9.5px;
+  line-height: 1.5;
+}
+
+.required-note {
+  font-size: 9px;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+.emblem {
+  width: 55px;
+  height: 55px;
+  object-fit: contain;
+}
+
+.kingdom-title {
+  font-size: 15px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.kingdom-motto {
+  font-size: 11px;
+  font-style: italic;
+}
+
+.form-title {
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-top: 6px;
+  text-decoration: underline;
+}
+
+/* Photo Box */
+.photo-box {
+  width: 95px;
+  height: 115px;
+  border: 1.5px solid #333;
+  background-image: url('images.jpg');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+}
+/* =====================
+   Visa Type Section
+   ===================== */
+.visa-type {
+  border: 1px solid #555;
+  padding: 5px 10px;
+  margin-bottom: 6px;
+  background: #fafaf7;
+}
+
+.label-bold {
+  font-weight: bold;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.visa-options {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 2px;
+}
+
+.visa-options label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  cursor: pointer;
+}
+
+/* =====================
+   Main Form Grid
+   ===================== */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 1px solid #555;
+}
+
+.col-left {
+  border-right: 1.5px solid #555;
+  padding: 6px 8px;
+}
+
+.col-right {
+  padding: 6px 8px;
+}
+
+/* =====================
+   Field Rows
+   ===================== */
+.field-row {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 3px 0;
+  border-bottom: 1px dotted #bbb;
+  flex-wrap: wrap;
+  font-size: 10.5px;
+}
+
+.field-row:last-child {
+  border-bottom: none;
+}
+
+.field-row label {
+  font-weight: bold;
+  white-space: nowrap;
+  color: #222;
+  font-size: 10.5px;
+}
+
+.field-value {
+  color: #1a1a1a;
+  font-weight: normal;
+  font-style: normal;
+}
+
+.field-underline {
+  display: inline-block;
+  width: 50px;
+  border-bottom: 1px solid #333;
+  margin-left: 3px;
+}
+
+/* Inline groups (gender, dates) */
+.inline-group {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.inline-group label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Date month options stacked */
+.date-row {
+  align-items: flex-start;
+}
+
+.month-options {
+  display: flex;
+  flex-direction: column;
+  font-size: 9px;
+  color: #555;
+  line-height: 1.6;
+  margin-left: 4px;
+}
+
+/* =====================
+   Checklist Section
+   ===================== */
+.checklist-section {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1.5px solid #555;
+}
+
+.checklist-section .section-title {
+  font-weight: bold;
+  font-size: 11px;
+  text-align: center;
+  text-decoration: underline;
+  margin-bottom: 5px;
+}
+
+.checklist-section label {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-size: 10px;
+  line-height: 1.6;
+  margin-bottom: 2px;
+}
+
+.checklist-section input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.indent {
+  padding-left: 20px;
+  font-size: 9.5px;
+  color: #333;
+  line-height: 1.6;
+}
+
+.indent p {
+  margin-bottom: 1px;
+}
+
+/* =====================
+   Organizer Section
+   ===================== */
+.organizer-section {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1.5px solid #555;
+}
+
+/* =====================
+   Footer Grid
+   ===================== */
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 2px solid #333;
+  margin-top: 8px;
+}
+
+.official-use {
+  border-right: 1.5px solid #555;
+  padding: 8px 10px;
+}
+
+.official-use .section-title {
+  font-weight: bold;
+  font-size: 11px;
+  text-decoration: underline;
+  margin-bottom: 10px;
+}
+
+.official-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.official-field label {
+  font-size: 10px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.line {
+  flex: 1;
+  border-bottom: 1px solid #333;
+  display: block;
+  height: 1px;
+}
+
+/* =====================
+   Declaration / Signature
+   ===================== */
+.declaration {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.declaration > p {
+  font-size: 10.5px;
+  font-style: italic;
+  margin-bottom: 10px;
+}
+
+.signature-area {
+  margin-top: 8px;
+}
+
+.sig-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #333;
+  padding-top: 4px;
+}
+
+.sig-text {
+  font-size: 13px;
+  font-family: 'Brush Script MT', cursive;
+  color: #1a1a1a;
+}
+
+.sig-date {
+  font-size: 10px;
+  color: #333;
+}
+
+.sig-label {
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 4px;
+  letter-spacing: 1px;
+}
+
+/* =====================
+   Inputs general reset
+   ===================== */
+input[type="checkbox"] {
+  width: 11px;
+  height: 11px;
+  cursor: pointer;
+  accent-color: #333;
+}
+
+
+.submit-section {
+  text-align: center;
+  margin-top: 16px;
+  padding: 10px 0 4px;
+  border-top: 2px solid #333;
+}

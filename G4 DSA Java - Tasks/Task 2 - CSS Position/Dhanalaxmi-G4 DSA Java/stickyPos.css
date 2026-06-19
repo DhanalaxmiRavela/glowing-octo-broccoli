@@ -1,0 +1,74 @@
+*{
+    margin:0;
+    padding:0;
+    box-align: baseline;
+    font-family: Arial, sans-serif;
+}
+body{
+    background-color: rgb(241, 63, 137);
+   line-height: 1.6;
+    padding: 20px;
+}
+
+/* Header Banner */
+.header-banner {
+    background-color: #333;
+    color: white;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+/* Navigation Bar using Position: Sticky */
+/* Makes the navbar stick to the top when scrolling */
+.navbar {
+    position: sticky;
+    top: 0;
+    background-color: #34495e;
+    color: white;
+    padding: 10px 0;
+    text-align: center;
+}
+.navbar ul {
+      display: flex;
+      justify-content: center;
+      list-style: none;
+    }
+
+    .navbar ul li {
+      margin: 0 20px;
+    }
+
+    .navbar ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+
+    .navbar ul li a:hover {
+      color: #1abc9c;
+    }
+
+    /* 19. Multiple Content Sections for Scrolling */
+    .section {
+      padding: 80px 20px;
+      max-width: 800px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .section h2 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+
+    /* Footer to add extra scrolling room */
+    footer {
+      background: #2c3e50;
+      color: white;
+      text-align: center;
+      padding: 40px;
+      margin-top: 40px;
+    }

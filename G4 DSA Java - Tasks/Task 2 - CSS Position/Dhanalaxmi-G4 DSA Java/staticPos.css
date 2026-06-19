@@ -1,0 +1,26 @@
+.box1{
+    
+    background-color: rgb(233, 27, 41);
+    width: 300px;
+    height: 300px;
+    border: 20px solid rgb(233, 223, 27);
+}
+.box2{
+ 
+     background-color: rgb(48, 241, 244);
+    /* width: 200px;
+    height: 200px; */
+    position: static;
+    top: 50px;
+    left: 50px;
+    border: 20px solid rgb(233, 223, 27);
+}
+/* EXPLANATION: Static positioned elements ignore top, left, right, bottom properties.
+   The box2 remains in the normal document flow. Top: 50px and left: 50px have NO EFFECT. */
+.box3{
+    display:flex;
+     background-color: rgb(241, 63, 137);
+    width: 300px;
+    height: 300px;
+    border: 20px solid rgb(233, 223, 27);
+}

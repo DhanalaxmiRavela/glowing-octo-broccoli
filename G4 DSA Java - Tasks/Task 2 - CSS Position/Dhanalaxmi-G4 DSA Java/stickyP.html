@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sticky Position</title>
+</head>
+<link rel="stylesheet" href="./stickyPos.css"/>
+<body>
+    <div class="header-banner">
+        <h1>Welcome to Our Website</h1>
+        <p>Scroll down to see the sticky navigation bar in action .</p>
+    </div>
+    <nav class="navbar">
+        <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+    <div id="home" class="section">
+        <h2>Home Section</h2>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas, voluptate.</p>
+    </div>
+    <div id="about" class="section">
+        <h2>About Us</h2>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas, voluptate.</p>
+    </div>
+    <div id="services" class="section">
+        <h2>Our Services</h2>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas, voluptate.</p>
+    </div>
+    <div id="contact" class="section">
+        <h2>Contact Us</h2>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas, voluptate.</p>
+    </div>
+    <footer>
+        <p>&copy; 2026 Our Website Sticky NavBar Demo. All rights reserved.</p>
+    </footer>
+    </body>
+</html>
+
+
+<!-- Difference between fixed and sticky positioning -->
+<!--
+1. Fixed Positioning: is completely independent .it anchors itself directly to the browser window,
+and stay at the same position even the webpage is scrollable.
+it does care about other elements it directly overflows on the content/on other elements.
+
+2. Sticky Positioning: is a hybrid of relative ,
+it starts out behaving like a relative element, but when you scrolls the page then it starts and sticks to the screen 
+as soon as it reaches a specified positionthe cursor moves and stops . -->

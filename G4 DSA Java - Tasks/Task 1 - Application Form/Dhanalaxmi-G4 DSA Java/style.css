@@ -1,0 +1,124 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:#fff;
+    padding:20px;
+}
+
+.container{
+    width:1000px;
+    margin:auto;
+    border:1px solid #ccc;
+}
+
+.top-header.message{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    padding:20px;
+}
+
+h1{
+    color:#083b8c;
+    font-size:52px;
+    font-weight:bold;
+}
+
+.top-header p{
+    margin-top:10px;
+}
+
+.photo-box{
+    width:150px;
+    height:180px;
+    border:2px solid #999;
+    text-align:center;
+    padding-top:50px;
+    font-size:14px;
+}
+
+.row{
+    display:flex;
+    gap:10px;
+    padding:10px 20px;
+}
+
+.official{
+    width:35%;
+    border:1px solid #999;
+}
+
+.section-title{
+    background:#083b8c;
+    color:white;
+    padding:10px;
+    font-weight:bold;
+}
+
+.official label{
+    display:block;
+    padding:10px;
+}
+
+.line{
+    border-bottom:1px solid #999;
+    margin:0 10px 10px;
+}
+
+.visa-type{
+    flex:1;
+    border:1px solid #999;
+    padding:15px;
+}
+
+.grid-3{
+    grid-template-columns:repeat(3,1fr);
+    gap:15px;
+    margin-top:15px;
+}
+
+.blue-heading{
+    background:#083b8c;
+    color:white;
+    padding:10px;
+    font-weight:bold;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+td{
+    border:1px solid #999;
+    height:60px;
+    padding:10px;
+    vertical-align:top;
+}
+
+.declaration{
+    border:1px solid #999;
+    padding:15px;
+    line-height:1.6;
+}
+
+.sign-row{
+    display:flex;
+    justify-content:space-between;
+    margin-top:50px;
+}
+
+.notes{
+    border:1px solid #999;
+    padding:15px;
+}
+
+.notes ul{
+    margin-top:10px;
+    margin-left:25px;
+}

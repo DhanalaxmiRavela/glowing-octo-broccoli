@@ -1,0 +1,12 @@
+
+    /* Use CSS3 background linear gradient */
+    .hero-gradient {
+      background: linear-gradient(135deg, #1e3c72 0%, #4984eb 100%);
+      min-height: 500px;
+    }
+    .max-h-350 {
+      max-height: 350px;
+      width: 100%;
+      object-fit: cover;
+    }
+ 

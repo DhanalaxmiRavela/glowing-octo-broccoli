@@ -1,0 +1,52 @@
+
+    /* Custom Brand Colors for the Crochet Business */
+    :root {
+      --cozy-warm: #f7ebe1;  /* Soft Warm Cream */
+      --cozy-clay: #d4a373;  /* Warm Yarn Earth */
+      --cozy-sage: #ccd5ae;  /* Sage Green accent */
+      --cozy-dark: #4a3f35;  /* Deep Brownish Charcoal for typography */
+    }
+
+    body {
+      background-image: url('./bgcrochet.jpg');
+      background-size: cover;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      color: var(--cozy-dark);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .navbar-brand {
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--cozy-dark) !important;
+    }
+
+    /* Custom Hero styling to blend with Bootstrap */
+    .hero-section {
+      background-color: var(--cozy-warm);
+      padding: 100px 0;
+    }
+
+    .btn-brand {
+      background-color: var(--cozy-clay);
+      color: white;
+      border: none;
+      padding: 10px 25px;
+      font-weight: 600;
+    }
+
+    .btn-brand:hover {
+      background-color: #bd8e60;
+      color: white;
+    }
+
+    .product-card img {
+      height: 300px;
+      object-fit: cover;
+    }
+
+    footer {
+      background-color: var(--cozy-dark);
+      color: #f7ebe1;
+    }

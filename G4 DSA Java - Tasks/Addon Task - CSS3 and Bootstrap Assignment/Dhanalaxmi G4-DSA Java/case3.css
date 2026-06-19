@@ -1,0 +1,28 @@
+
+    /* Styling for focus controls and anchor states. */
+    .form-control-custom {
+      border: 1px solid #ced4da;
+      transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .form-control-custom:focus {
+      border-color: #2a5298;
+      box-shadow: 0 0 0 0.25rem rgba(42, 82, 152, 0.15);
+      outline: 0;
+    }
+    .forgot-password-link {
+      color: #2a5298;
+      font-size: 0.875rem;
+      transition: color 0.2s ease;
+    }
+    .forgot-password-link:hover {
+      color: #1e3c72;
+      text-decoration: underline !important;
+    }
+    .btn-login-submit {
+      background-color: #2a5298;
+      border: none;
+    }
+    .btn-login-submit:hover {
+      background-color: #1e3c72;
+    }
+ 

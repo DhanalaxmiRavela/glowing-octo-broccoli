@@ -1,0 +1,49 @@
+body{
+    background: linear-gradient(
+        135deg,
+        #1c1c1c,
+        #203a43,
+        #2c5364
+    );
+    min-height: 100vh;
+}
+
+.order-section{
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.order-card{
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    transition: 0.4s;
+}
+
+.order-card:hover{
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+}
+
+.order-card h2{
+    color: #198754;
+    font-weight: bold;
+}
+
+.total-price{
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #198754;
+}
+
+.btn-success{
+    border-radius: 30px;
+    padding: 12px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-success:hover{
+    transform: scale(1.05);
+}

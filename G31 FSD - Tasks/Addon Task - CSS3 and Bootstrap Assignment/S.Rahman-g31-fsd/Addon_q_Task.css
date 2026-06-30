@@ -1,0 +1,50 @@
+body{
+    background: linear-gradient(135deg,#1c1c1c,#203a43,#2c5364);
+    min-height: 100vh;
+    color: white;
+}
+
+.skills-section{
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.progress{
+    height: 28px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.2);
+}
+
+.progress-bar{
+    font-weight: bold;
+    transition: width 1s ease;
+}
+
+/* Custom Colors */
+
+.html-skill{
+    background: #e34c26;
+}
+
+.css-skill{
+    background: #264de4;
+}
+
+.bootstrap-skill{
+    background: #7952b3;
+}
+
+.js-skill{
+    background: #f7df1e;
+    color: black;
+}
+
+.csharp-skill{
+    background: #68217a;
+}
+
+h2{
+    color: #20c997;
+}

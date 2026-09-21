@@ -1,0 +1,1790 @@
+Part 1 — Database Design
+
+The assignment asks for a PostgreSQL e-commerce database called shopsphere_db, with 7 tables.
+
+Database
+CREATE DATABASE shopsphere_db;
+
+After creating it, connect to shopsphere_db in pgAdmin/psql.
+
+1. Customers Table
+CREATE TABLE customers (
+    customer_id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(20),
+    city VARCHAR(50),
+    country VARCHAR(50),
+    registration_date DATE DEFAULT CURRENT_DATE,
+    status VARCHAR(20) NOT NULL
+        CHECK (status IN ('Active', 'Inactive', 'Blocked'))
+);
+2. Categories Table
+CREATE TABLE categories (
+    category_id SERIAL PRIMARY KEY,
+    category_name VARCHAR(100) UNIQUE NOT NULL,
+    description TEXT,
+    parent_category_id INT,
+
+    CONSTRAINT fk_parent_category
+        FOREIGN KEY (parent_category_id)
+        REFERENCES categories(category_id)
+);
+
+The self-reference is required because categories can have parent/child relationships such as Electronics → Computers → Laptops.
+
+3. Products Table
+CREATE TABLE products (
+    product_id SERIAL PRIMARY KEY,
+    product_name VARCHAR(150) NOT NULL,
+    category_id INT NOT NULL,
+    price NUMERIC(10,2) NOT NULL
+        CHECK (price > 0),
+    stock_quantity INT NOT NULL
+        CHECK (stock_quantity >= 0),
+    supplier_name VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+
+    CONSTRAINT fk_product_category
+        FOREIGN KEY (category_id)
+        REFERENCES categories(category_id)
+);
+4. Orders Table
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    customer_id INT NOT NULL,
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    order_status VARCHAR(20) NOT NULL
+        CHECK (
+            order_status IN
+            ('Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled')
+        ),
+    shipping_city VARCHAR(50),
+    shipping_country VARCHAR(50),
+    total_amount NUMERIC(12,2) NOT NULL
+        CHECK (total_amount >= 0),
+
+    CONSTRAINT fk_order_customer
+        FOREIGN KEY (customer_id)
+        REFERENCES customers(customer_id)
+);
+5. Order Items Table
+CREATE TABLE order_items (
+    order_item_id SERIAL PRIMARY KEY,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL
+        CHECK (quantity > 0),
+    unit_price NUMERIC(10,2) NOT NULL
+        CHECK (unit_price > 0),
+    discount NUMERIC(5,2) DEFAULT 0
+        CHECK (discount >= 0 AND discount <= 100),
+
+    CONSTRAINT fk_order_item_order
+        FOREIGN KEY (order_id)
+        REFERENCES orders(order_id),
+
+    CONSTRAINT fk_order_item_product
+        FOREIGN KEY (product_id)
+        REFERENCES products(product_id)
+);
+6. Payments Table
+CREATE TABLE payments (
+    payment_id SERIAL PRIMARY KEY,
+    order_id INT NOT NULL,
+    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    payment_method VARCHAR(30)
+        CHECK (
+            payment_method IN
+            ('Credit Card',
+             'Debit Card',
+             'UPI',
+             'PayPal',
+             'Cash on Delivery')
+        ),
+
+    payment_status VARCHAR(20)
+        CHECK (
+            payment_status IN
+            ('Pending',
+             'Completed',
+             'Failed',
+             'Refunded')
+        ),
+
+    amount NUMERIC(12,2) NOT NULL
+        CHECK (amount >= 0),
+
+    transaction_reference VARCHAR(100),
+
+    CONSTRAINT fk_payment_order
+        FOREIGN KEY (order_id)
+        REFERENCES orders(order_id)
+);
+7. Reviews Table
+CREATE TABLE reviews (
+    review_id SERIAL PRIMARY KEY,
+    customer_id INT NOT NULL,
+    product_id INT NOT NULL,
+
+    rating INT NOT NULL
+        CHECK (rating BETWEEN 1 AND 5),
+
+    review_text TEXT,
+    review_date DATE DEFAULT CURRENT_DATE,
+
+    CONSTRAINT fk_review_customer
+        FOREIGN KEY (customer_id)
+        REFERENCES customers(customer_id),
+
+    CONSTRAINT fk_review_product
+        FOREIGN KEY (product_id)
+        REFERENCES products(product_id)
+);
+Part 2 — Sample Data
+
+Your assignment recommends at least 20 customers, 10 categories, 30 products, 40 orders, 80 order items, 30 payments and 25 reviews.
+
+I'll give you the sample-data code separately after the queries so it doesn't become one enormous block.
+
+Part 3 — Basic SQL Queries
+Query 1 — Display all customers
+SELECT *
+FROM customers;
+Query 2 — Active customers
+SELECT
+    first_name,
+    last_name,
+    email,
+    city
+FROM customers
+WHERE status = 'Active';
+Query 3 — Products costing more than 1000
+SELECT *
+FROM products
+WHERE price > 1000;
+Query 4 — Products between 500 and 2000
+SELECT *
+FROM products
+WHERE price BETWEEN 500 AND 2000;
+Query 5 — Customers from three cities using IN
+SELECT *
+FROM customers
+WHERE city IN ('Mumbai', 'Delhi', 'Pune');
+Query 6 — First name starts with A
+SELECT *
+FROM customers
+WHERE first_name LIKE 'A%';
+Query 7 — Product name contains "Phone"
+SELECT *
+FROM products
+WHERE product_name ILIKE '%Phone%';
+
+ILIKE makes the search case-insensitive in PostgreSQL.
+
+Query 8 — Orders newest to oldest
+SELECT *
+FROM orders
+ORDER BY order_date DESC;
+Query 9 — Five most expensive products
+SELECT *
+FROM products
+ORDER BY price DESC
+LIMIT 5;
+Query 10 — Products with stock below 10
+SELECT *
+FROM products
+WHERE stock_quantity < 10;
+
+These correspond to Questions 1–10 in the assignment.
+
+Part 4 — Aggregate Functions
+Query 11 — Total customers
+SELECT COUNT(*) AS total_customers
+FROM customers;
+Query 12 — Total products
+SELECT COUNT(*) AS total_products
+FROM products;
+Query 13 — Average product price
+SELECT AVG(price) AS average_product_price
+FROM products;
+Query 14 — Cheapest product
+SELECT MIN(price) AS cheapest_product
+FROM products;
+Query 15 — Most expensive product
+SELECT MAX(price) AS most_expensive_product
+FROM products;
+Query 16 — Total value of all orders
+SELECT SUM(total_amount) AS total_order_value
+FROM orders;
+Query 17 — Average order amount
+SELECT AVG(total_amount) AS average_order_amount
+FROM orders;
+Query 18 — Orders for each status
+SELECT
+    order_status,
+    COUNT(*) AS total_orders
+FROM orders
+GROUP BY order_status;
+Part 5 — GROUP BY and HAVING
+Query 19 — Number of products in each category
+SELECT
+    c.category_name,
+    COUNT(p.product_id) AS total_products
+FROM categories c
+LEFT JOIN products p
+    ON c.category_id = p.category_id
+GROUP BY c.category_id, c.category_name;
+Query 20 — Average product price per category
+SELECT
+    c.category_name,
+    AVG(p.price) AS average_price
+FROM categories c
+JOIN products p
+    ON c.category_id = p.category_id
+GROUP BY c.category_id, c.category_name;
+Query 21 — Categories with average price > 1000
+SELECT
+    c.category_name,
+    AVG(p.price) AS average_price
+FROM categories c
+JOIN products p
+    ON c.category_id = p.category_id
+GROUP BY c.category_id, c.category_name
+HAVING AVG(p.price) > 1000;
+Query 22 — Total spending of each customer
+SELECT
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    COALESCE(SUM(o.total_amount), 0) AS total_spending
+FROM customers c
+LEFT JOIN orders o
+    ON c.customer_id = o.customer_id
+GROUP BY
+    c.customer_id,
+    c.first_name,
+    c.last_name;
+Query 23 — Customers spending more than 5000
+SELECT
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    SUM(o.total_amount) AS total_spending
+FROM customers c
+JOIN orders o
+    ON c.customer_id = o.customer_id
+GROUP BY
+    c.customer_id,
+    c.first_name,
+    c.last_name
+HAVING SUM(o.total_amount) > 5000;
+Query 24 — Products ordered more than five times
+SELECT
+    p.product_id,
+    p.product_name,
+    SUM(oi.quantity) AS total_quantity_ordered
+FROM products p
+JOIN order_items oi
+    ON p.product_id = oi.product_id
+GROUP BY
+    p.product_id,
+    p.product_name
+HAVING SUM(oi.quantity) > 5;
+
+These cover the assignment's Questions 19–24.
+
+Part 6 — SQL Joins
+
+Query 25 — INNER JOIN
+
+SELECT
+    o.order_id,
+    c.first_name || ' ' || c.last_name AS customer_name,
+    o.order_date,
+    o.order_status,
+    o.total_amount
+FROM orders o
+INNER JOIN customers c
+    ON o.customer_id = c.customer_id;
+
+Query 26 — Multiple-table JOIN
+
+SELECT
+    o.order_id,
+    c.first_name || ' ' || c.last_name AS customer_name,
+    p.product_name,
+    oi.quantity,
+    oi.unit_price
+FROM customers c
+JOIN orders o
+    ON c.customer_id = o.customer_id
+JOIN order_items oi
+    ON o.order_id = oi.order_id
+JOIN products p
+    ON oi.product_id = p.product_id;
+
+Query 27 — Product and category
+
+SELECT
+    p.product_id,
+    p.product_name,
+    c.category_name,
+    p.price
+FROM products p
+JOIN categories c
+    ON p.category_id = c.category_id;
+
+Query 28 — All customers and their orders
+
+SELECT
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    o.order_id,
+    o.order_date,
+    o.order_status
+FROM customers c
+LEFT JOIN orders o
+    ON c.customer_id = o.customer_id;
+
+Query 29 — Customers who never placed an order
+
+SELECT
+    c.*
+FROM customers c
+LEFT JOIN orders o
+    ON c.customer_id = o.customer_id
+WHERE o.order_id IS NULL;
+
+Query 30 — Products never ordered
+
+SELECT
+    p.*
+FROM products p
+LEFT JOIN order_items oi
+    ON p.product_id = oi.product_id
+WHERE oi.order_item_id IS NULL;
+
+Query 31 — RIGHT JOIN
+
+SELECT
+    c.customer_id,
+    c.first_name,
+    o.order_id,
+    o.order_status
+FROM orders o
+RIGHT JOIN customers c
+    ON o.customer_id = c.customer_id;
+
+Explanation: RIGHT JOIN keeps every row from the right-side table (customers), even if there is no matching order. An INNER JOIN would return only customers having matching orders.
+
+Query 32 — FULL OUTER JOIN
+SELECT
+    c.customer_id,
+    c.first_name,
+    o.order_id,
+    o.order_status
+FROM customers c
+FULL OUTER JOIN orders o
+    ON c.customer_id = o.customer_id;
+
+A FULL OUTER JOIN includes matching rows plus unmatched rows from both sides.
+
+Query 33 — SELF JOIN
+SELECT
+    child.category_name AS child_category,
+    parent.category_name AS parent_category
+FROM categories child
+LEFT JOIN categories parent
+    ON child.parent_category_id = parent.category_id;
+
+Part 7: Subqueries
+Question 34 — Products above average price
+SELECT *
+FROM products
+WHERE price > (
+    SELECT AVG(price)
+    FROM products
+);
+Question 35 — Customers whose total order amount is greater than average order amount
+SELECT
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    SUM(o.total_amount) AS total_order_amount
+FROM customers c
+JOIN orders o
+    ON c.customer_id = o.customer_id
+GROUP BY
+    c.customer_id,
+    c.first_name,
+    c.last_name
+HAVING SUM(o.total_amount) > (
+    SELECT AVG(total_amount)
+    FROM orders
+);
+Question 36 — Most expensive product in each category
+SELECT p.*
+FROM products p
+WHERE p.price = (
+    SELECT MAX(p2.price)
+    FROM products p2
+    WHERE p2.category_id = p.category_id
+);
+Question 37 — Customers who placed at least one order
+SELECT *
+FROM customers c
+WHERE EXISTS (
+    SELECT 1
+    FROM orders o
+    WHERE o.customer_id = c.customer_id
+);
+Question 38 — Customers who never placed an order
+SELECT *
+FROM customers c
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM orders o
+    WHERE o.customer_id = c.customer_id
+);
+Question 39 — Products more expensive than every product in a selected category
+
+Here, category 6 is used as the selected category.
+
+SELECT *
+FROM products
+WHERE price > ALL (
+    SELECT price
+    FROM products
+    WHERE category_id = 6
+);
+
+You can replace 6 with another category ID.
+
+Question 40 — Products more expensive than at least one product from another category
+SELECT *
+FROM products
+WHERE price > ANY (
+    SELECT price
+    FROM products
+    WHERE category_id = 10
+);
+
+You can replace 10 with another category ID.
+
+Part 8: Correlated Subqueries
+Question 41 — Most expensive product in every category
+SELECT
+    p.product_id,
+    p.product_name,
+    p.category_id,
+    p.price
+FROM products p
+WHERE p.price = (
+    SELECT MAX(p2.price)
+    FROM products p2
+    WHERE p2.category_id = p.category_id
+);
+Question 42 — Customers spending more than the average spending in their city
+SELECT
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    c.city,
+    SUM(o.total_amount) AS total_spending
+FROM customers c
+JOIN orders o
+    ON c.customer_id = o.customer_id
+GROUP BY
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    c.city
+HAVING SUM(o.total_amount) > (
+    SELECT AVG(city_spending)
+    FROM (
+        SELECT
+            c2.customer_id,
+            SUM(o2.total_amount) AS city_spending
+        FROM customers c2
+        JOIN orders o2
+            ON c2.customer_id = o2.customer_id
+        WHERE c2.city = c.city
+        GROUP BY c2.customer_id
+    ) city_data
+);
+Question 43 — Products with ratings above their category average
+SELECT DISTINCT
+    p.product_id,
+    p.product_name,
+    r.rating
+FROM products p
+JOIN reviews r
+    ON p.product_id = r.product_id
+WHERE r.rating > (
+    SELECT AVG(r2.rating)
+    FROM reviews r2
+    JOIN products p2
+        ON r2.product_id = p2.product_id
+    WHERE p2.category_id = p.category_id
+);
+Part 9: CASE Expressions
+Question 44 — Categorize products by price
+SELECT
+    product_name,
+    price,
+    CASE
+        WHEN price < 500 THEN 'Budget'
+        WHEN price <= 2000 THEN 'Mid Range'
+        ELSE 'Premium'
+    END AS price_category
+FROM products;
+Question 45 — Categorize stock levels
+SELECT
+    product_name,
+    stock_quantity,
+    CASE
+        WHEN stock_quantity = 0 THEN 'Out of Stock'
+        WHEN stock_quantity BETWEEN 1 AND 10 THEN 'Low Stock'
+        WHEN stock_quantity BETWEEN 11 AND 50 THEN 'Medium Stock'
+        ELSE 'High Stock'
+    END AS stock_level
+FROM products;
+Question 46 — Order status description
+SELECT
+    order_id,
+    order_status,
+    CASE order_status
+        WHEN 'Pending' THEN 'Awaiting Processing'
+        WHEN 'Shipped' THEN 'On the Way'
+        WHEN 'Delivered' THEN 'Completed'
+        WHEN 'Cancelled' THEN 'Order Cancelled'
+        ELSE order_status
+    END AS status_description
+FROM orders;
+Part 10: Common Table Expressions — CTE
+Question 47 — Customer spending using CTE
+WITH customer_spending AS (
+    SELECT
+        c.customer_id,
+        c.first_name,
+        c.last_name,
+        COALESCE(SUM(o.total_amount), 0) AS total_spent
+    FROM customers c
+    LEFT JOIN orders o
+        ON c.customer_id = o.customer_id
+    GROUP BY
+        c.customer_id,
+        c.first_name,
+        c.last_name
+)
+SELECT *
+FROM customer_spending
+WHERE total_spent > 5000;
+Question 48 — Ten highest-selling products
+WITH product_sales AS (
+    SELECT
+        p.product_id,
+        p.product_name,
+        COALESCE(SUM(oi.quantity), 0) AS quantity_sold
+    FROM products p
+    LEFT JOIN order_items oi
+        ON p.product_id = oi.product_id
+    GROUP BY
+        p.product_id,
+        p.product_name
+)
+SELECT *
+FROM product_sales
+ORDER BY quantity_sold DESC
+LIMIT 10;
+Question 49 — Multiple CTEs
+WITH customer_order_summary AS (
+    SELECT
+        customer_id,
+        COUNT(*) AS total_orders,
+        SUM(total_amount) AS total_spent
+    FROM orders
+    GROUP BY customer_id
+),
+product_sales_summary AS (
+    SELECT
+        product_id,
+        SUM(quantity) AS quantity_sold,
+        SUM(
+            quantity * unit_price * (1 - discount / 100.0)
+        ) AS total_sales
+    FROM order_items
+    GROUP BY product_id
+)
+SELECT
+    (SELECT COUNT(*) FROM customer_order_summary) AS customers_with_orders,
+    (SELECT SUM(total_orders) FROM customer_order_summary) AS total_orders,
+    (SELECT SUM(quantity_sold) FROM product_sales_summary) AS total_products_sold,
+    (SELECT SUM(total_sales) FROM product_sales_summary) AS total_sales;
+Question 50 — Customers spending above average customer spending
+WITH customer_spending AS (
+    SELECT
+        c.customer_id,
+        c.first_name,
+        c.last_name,
+        COALESCE(SUM(o.total_amount), 0) AS total_spent
+    FROM customers c
+    LEFT JOIN orders o
+        ON c.customer_id = o.customer_id
+    GROUP BY
+        c.customer_id,
+        c.first_name,
+        c.last_name
+)
+SELECT *
+FROM customer_spending
+WHERE total_spent > (
+    SELECT AVG(total_spent)
+    FROM customer_spending
+);
+Part 11: Recursive CTE
+Question 51 — Complete category hierarchy
+WITH RECURSIVE category_hierarchy AS (
+    SELECT
+        category_id,
+        category_name,
+        parent_category_id,
+        0 AS level
+    FROM categories
+    WHERE parent_category_id IS NULL
+
+    UNION ALL
+
+    SELECT
+        c.category_id,
+        c.category_name,
+        c.parent_category_id,
+        ch.level + 1
+    FROM categories c
+    JOIN category_hierarchy ch
+        ON c.parent_category_id = ch.category_id
+)
+SELECT
+    category_id,
+    category_name,
+    parent_category_id,
+    level
+FROM category_hierarchy
+ORDER BY level, category_id;
+Question 52 — Category hierarchy with indentation
+WITH RECURSIVE category_hierarchy AS (
+    SELECT
+        category_id,
+        category_name,
+        parent_category_id,
+        0 AS level
+    FROM categories
+    WHERE parent_category_id IS NULL
+
+    UNION ALL
+
+    SELECT
+        c.category_id,
+        c.category_name,
+        c.parent_category_id,
+        ch.level + 1
+    FROM categories c
+    JOIN category_hierarchy ch
+        ON c.parent_category_id = ch.category_id
+)
+SELECT
+    REPEAT('    ', level) || category_name AS category_hierarchy
+FROM category_hierarchy
+ORDER BY level, category_id;
+Part 12: Views
+Question 53 — Create customer_order_summary view
+CREATE OR REPLACE VIEW customer_order_summary AS
+SELECT
+    c.customer_id,
+    c.first_name || ' ' || c.last_name AS customer_name,
+    COUNT(o.order_id) AS total_orders,
+    COALESCE(SUM(o.total_amount), 0) AS total_spent,
+    MAX(o.order_date) AS last_order_date
+FROM customers c
+LEFT JOIN orders o
+    ON c.customer_id = o.customer_id
+GROUP BY
+    c.customer_id,
+    c.first_name,
+    c.last_name;
+Question 54 — Five highest-spending customers
+SELECT *
+FROM customer_order_summary
+ORDER BY total_spent DESC
+LIMIT 5;
+Question 55 — Create product_sales_summary view
+CREATE OR REPLACE VIEW product_sales_summary AS
+SELECT
+    p.product_id,
+    p.product_name,
+    c.category_name,
+    COALESCE(SUM(oi.quantity), 0) AS total_quantity_sold,
+    COALESCE(
+        SUM(
+            oi.quantity *
+            oi.unit_price *
+            (1 - oi.discount / 100.0)
+        ),
+        0
+    ) AS total_sales
+FROM products p
+JOIN categories c
+    ON p.category_id = c.category_id
+LEFT JOIN order_items oi
+    ON p.product_id = oi.product_id
+GROUP BY
+    p.product_id,
+    p.product_name,
+    c.category_name;
+Question 56 — Products with sales above 10,000
+SELECT *
+FROM product_sales_summary
+WHERE total_sales > 10000
+ORDER BY total_sales DESC;
+Question 57 — Attempt to update through a view
+
+For the aggregate view above, an update such as:
+
+UPDATE customer_order_summary
+SET total_spent = 5000
+WHERE customer_id = 1;
+
+will not work because the view contains aggregate functions and GROUP BY.
+
+You can inspect the view with:
+
+SELECT *
+FROM customer_order_summary;
+Part 13: Materialized Views
+Question 58 — Create monthly_sales_summary
+CREATE MATERIALIZED VIEW monthly_sales_summary AS
+SELECT
+    EXTRACT(YEAR FROM o.order_date)::INT AS sales_year,
+    EXTRACT(MONTH FROM o.order_date)::INT AS sales_month,
+    COUNT(DISTINCT o.order_id) AS total_orders,
+    COALESCE(SUM(oi.quantity), 0) AS total_products_sold,
+    COALESCE(
+        SUM(
+            oi.quantity *
+            oi.unit_price *
+            (1 - oi.discount / 100.0)
+        ),
+        0
+    ) AS total_revenue
+FROM orders o
+JOIN order_items oi
+    ON o.order_id = oi.order_id
+GROUP BY
+    EXTRACT(YEAR FROM o.order_date),
+    EXTRACT(MONTH FROM o.order_date);
+Question 59 — Display monthly revenue
+SELECT
+    sales_year,
+    sales_month,
+    total_revenue
+FROM monthly_sales_summary
+ORDER BY sales_year, sales_month;
+Question 60 — Query materialized view after adding new orders
+SELECT *
+FROM monthly_sales_summary
+ORDER BY sales_year, sales_month;
+
+A materialized view stores a snapshot of the query result, so newly inserted data does not automatically appear until it is refreshed.
+
+Question 61 — Refresh materialized view
+REFRESH MATERIALIZED VIEW monthly_sales_summary;
+
+Then verify:
+
+SELECT *
+FROM monthly_sales_summary
+ORDER BY sales_year, sales_month;
+Question 62 — VIEW vs MATERIALIZED VIEW
+VIEW
+CREATE OR REPLACE VIEW example_view AS
+SELECT *
+FROM orders;
+MATERIALIZED VIEW
+CREATE MATERIALIZED VIEW example_materialized_view AS
+SELECT *
+FROM orders;
+
+Main difference:
+
+VIEW
+→ Does not physically store the result
+→ Query runs when accessed
+→ Always reflects current underlying data
+→ Usually requires less storage
+
+MATERIALIZED VIEW
+→ Stores query result physically
+→ Faster for repeated complex reports
+→ Data can become outdated
+→ Requires REFRESH MATERIALIZED VIEW
+Part 14: Indexes
+Question 63 — Index on customers.email
+CREATE INDEX idx_customers_email
+ON customers(email);
+Question 64 — Index on orders.customer_id
+CREATE INDEX idx_orders_customer_id
+ON orders(customer_id);
+Question 65 — Index on orders.order_date
+CREATE INDEX idx_orders_order_date
+ON orders(order_date);
+Question 66 — Composite index on order status and date
+CREATE INDEX idx_orders_status_date
+ON orders(order_status, order_date);
+Question 67 — Index on product category and price
+CREATE INDEX idx_products_category_price
+ON products(category_id, price);
+Question 68 — EXPLAIN ANALYZE
+
+Before creating an index:
+
+EXPLAIN ANALYZE
+SELECT *
+FROM orders
+WHERE customer_id = 10;
+
+Create the index:
+
+CREATE INDEX idx_orders_customer_id
+ON orders(customer_id);
+
+Run again:
+
+EXPLAIN ANALYZE
+SELECT *
+FROM orders
+WHERE customer_id = 10;
+
+Look for:
+
+Seq Scan
+
+versus:
+
+Index Scan
+
+and compare the execution time.
+
+Question 69 — Remove an index
+DROP INDEX IF EXISTS idx_orders_customer_id;
+
+An index may be removed when it is unused, redundant, consumes unnecessary storage, or adds unnecessary overhead to INSERT, UPDATE, and DELETE.
+
+Part 15: Stored Procedures
+Question 70 — update_product_stock
+CREATE OR REPLACE PROCEDURE update_product_stock(
+    p_product_id INT,
+    p_quantity_change INT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    current_stock INT;
+BEGIN
+    SELECT stock_quantity
+    INTO current_stock
+    FROM products
+    WHERE product_id = p_product_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Product does not exist';
+    END IF;
+
+    IF current_stock + p_quantity_change < 0 THEN
+        RAISE EXCEPTION 'Stock cannot become negative';
+    END IF;
+
+    UPDATE products
+    SET stock_quantity = stock_quantity + p_quantity_change
+    WHERE product_id = p_product_id;
+END;
+$$;
+
+Call it:
+
+CALL update_product_stock(1, 10);
+
+To decrease stock:
+
+CALL update_product_stock(1, -5);
+Question 71 — cancel_order
+CREATE OR REPLACE PROCEDURE cancel_order(
+    p_order_id INT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    current_status VARCHAR(20);
+BEGIN
+    SELECT order_status
+    INTO current_status
+    FROM orders
+    WHERE order_id = p_order_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Order does not exist';
+    END IF;
+
+    IF current_status = 'Delivered' THEN
+        RAISE EXCEPTION 'Delivered orders cannot be cancelled';
+    END IF;
+
+    IF current_status = 'Cancelled' THEN
+        RAISE EXCEPTION 'Order is already cancelled';
+    END IF;
+
+    UPDATE products p
+    SET stock_quantity = p.stock_quantity + oi.quantity
+    FROM order_items oi
+    WHERE oi.order_id = p_order_id
+      AND p.product_id = oi.product_id;
+
+    UPDATE orders
+    SET order_status = 'Cancelled'
+    WHERE order_id = p_order_id;
+END;
+$$;
+
+Call:
+
+CALL cancel_order(1);
+Question 72 — process_payment
+CREATE OR REPLACE PROCEDURE process_payment(
+    p_order_id INT,
+    p_payment_method VARCHAR(30),
+    p_payment_amount NUMERIC(12,2),
+    p_transaction_reference VARCHAR(100)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM orders
+        WHERE order_id = p_order_id
+    ) THEN
+        RAISE EXCEPTION 'Order does not exist';
+    END IF;
+
+    INSERT INTO payments (
+        order_id,
+        payment_date,
+        payment_method,
+        payment_status,
+        amount,
+        transaction_reference
+    )
+    VALUES (
+        p_order_id,
+        CURRENT_TIMESTAMP,
+        p_payment_method,
+        'Completed',
+        p_payment_amount,
+        p_transaction_reference
+    );
+END;
+$$;
+
+Call:
+
+CALL process_payment(
+    1,
+    'UPI',
+    2500.00,
+    'TXN123456'
+);
+Question 73 — Mark old Processing orders as delayed
+
+The assignment asks for a Delayed status, but the original order-status list contains:
+
+Pending
+Processing
+Shipped
+Delivered
+Cancelled
+
+So first, if your database constraint does not allow Delayed, add it to the constraint.
+
+For example, if your constraint is named orders_order_status_check:
+
+ALTER TABLE orders
+DROP CONSTRAINT IF EXISTS orders_order_status_check;
+
+ALTER TABLE orders
+ADD CONSTRAINT orders_order_status_check
+CHECK (
+    order_status IN (
+        'Pending',
+        'Processing',
+        'Shipped',
+        'Delivered',
+        'Cancelled',
+        'Delayed'
+    )
+);
+
+Then create the procedure:
+
+CREATE OR REPLACE PROCEDURE mark_delayed_orders(
+    p_days INT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE orders
+    SET order_status = 'Delayed'
+    WHERE order_status = 'Processing'
+      AND order_date < CURRENT_DATE - p_days;
+END;
+$$;
+
+Call:
+
+CALL mark_delayed_orders(7);
+Part 16: User-Defined Functions
+Question 74 — calculate_order_total
+CREATE OR REPLACE FUNCTION calculate_order_total(
+    p_order_id INT
+)
+RETURNS NUMERIC(12,2)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    total_value NUMERIC(12,2);
+BEGIN
+    SELECT COALESCE(
+        SUM(
+            quantity *
+            unit_price *
+            (1 - discount / 100.0)
+        ),
+        0
+    )
+    INTO total_value
+    FROM order_items
+    WHERE order_id = p_order_id;
+
+    RETURN total_value;
+END;
+$$;
+
+Use:
+
+SELECT calculate_order_total(1);
+Question 75 — customer_total_spending
+CREATE OR REPLACE FUNCTION customer_total_spending(
+    p_customer_id INT
+)
+RETURNS NUMERIC(12,2)
+LANGUAGE SQL
+AS $$
+    SELECT COALESCE(SUM(total_amount), 0)
+    FROM orders
+    WHERE customer_id = p_customer_id;
+$$;
+
+Use:
+
+SELECT customer_total_spending(1);
+Question 76 — get_customer_order_count
+CREATE OR REPLACE FUNCTION get_customer_order_count(
+    p_customer_id INT
+)
+RETURNS INT
+LANGUAGE SQL
+AS $$
+    SELECT COUNT(*)::INT
+    FROM orders
+    WHERE customer_id = p_customer_id;
+$$;
+
+Use:
+
+SELECT get_customer_order_count(1);
+Question 77 — product_average_rating
+CREATE OR REPLACE FUNCTION product_average_rating(
+    p_product_id INT
+)
+RETURNS NUMERIC(4,2)
+LANGUAGE SQL
+AS $$
+    SELECT COALESCE(ROUND(AVG(rating), 2), 0)
+    FROM reviews
+    WHERE product_id = p_product_id;
+$$;
+
+Use:
+
+SELECT product_average_rating(1);
+Question 78 — Use functions in normal queries
+SELECT
+    customer_id,
+    first_name,
+    last_name,
+    customer_total_spending(customer_id) AS total_spending,
+    get_customer_order_count(customer_id) AS order_count
+FROM customers;
+Part 18: Window Functions
+Question 79 — Rank products by price
+SELECT
+    product_id,
+    product_name,
+    price,
+    RANK() OVER (
+        ORDER BY price DESC
+    ) AS price_rank
+FROM products;
+Question 80 — Rank products within each category
+SELECT
+    product_id,
+    product_name,
+    category_id,
+    price,
+    RANK() OVER (
+        PARTITION BY category_id
+        ORDER BY price DESC
+    ) AS category_rank
+FROM products;
+Question 81 — Top 3 expensive products in every category
+WITH ranked_products AS (
+    SELECT
+        product_id,
+        product_name,
+        category_id,
+        price,
+        RANK() OVER (
+            PARTITION BY category_id
+            ORDER BY price DESC
+        ) AS product_rank
+    FROM products
+)
+SELECT *
+FROM ranked_products
+WHERE product_rank <= 3
+ORDER BY category_id, product_rank;
+Question 82 — Running total of sales by date
+SELECT
+    order_id,
+    order_date,
+    total_amount,
+    SUM(total_amount) OVER (
+        ORDER BY order_date, order_id
+    ) AS running_total
+FROM orders
+ORDER BY order_date, order_id;
+Question 83 — Unique row number for every customer order
+SELECT
+    order_id,
+    customer_id,
+    order_date,
+    total_amount,
+    ROW_NUMBER() OVER (
+        PARTITION BY customer_id
+        ORDER BY order_date
+    ) AS order_number
+FROM orders;
+Question 84 — Compare order with customer's previous order
+SELECT
+    order_id,
+    customer_id,
+    order_date,
+    total_amount,
+    LAG(total_amount) OVER (
+        PARTITION BY customer_id
+        ORDER BY order_date
+    ) AS previous_order_amount
+FROM orders;
+
+You can also calculate the difference:
+
+SELECT
+    order_id,
+    customer_id,
+    order_date,
+    total_amount,
+    LAG(total_amount) OVER (
+        PARTITION BY customer_id
+        ORDER BY order_date
+    ) AS previous_order_amount,
+    total_amount -
+    LAG(total_amount) OVER (
+        PARTITION BY customer_id
+        ORDER BY order_date
+    ) AS difference
+FROM orders;
+Part 19: Date and Time Queries
+Question 85 — Orders placed today
+SELECT *
+FROM orders
+WHERE order_date::DATE = CURRENT_DATE;
+Question 86 — Orders placed during current month
+SELECT *
+FROM orders
+WHERE order_date >= DATE_TRUNC('month', CURRENT_DATE)
+  AND order_date < DATE_TRUNC('month', CURRENT_DATE)
+                    + INTERVAL '1 month';
+Question 87 — Monthly revenue
+SELECT
+    DATE_TRUNC('month', order_date) AS sales_month,
+    SUM(total_amount) AS monthly_revenue
+FROM orders
+GROUP BY DATE_TRUNC('month', order_date)
+ORDER BY sales_month;
+Question 88 — Customers with no order in last six months
+SELECT
+    c.customer_id,
+    c.first_name,
+    c.last_name
+FROM customers c
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM orders o
+    WHERE o.customer_id = c.customer_id
+      AND o.order_date >= CURRENT_DATE - INTERVAL '6 months'
+);
+Question 89 — Days between registration and first order
+SELECT
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    c.registration_date,
+    MIN(o.order_date) AS first_order_date,
+    MIN(o.order_date)::DATE - c.registration_date::DATE
+        AS days_until_first_order
+FROM customers c
+JOIN orders o
+    ON c.customer_id = o.customer_id
+GROUP BY
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    c.registration_date;
+Part 20: String Functions
+Question 90 — Complete customer name
+SELECT
+    customer_id,
+    first_name || ' ' || last_name AS full_name
+FROM customers;
+Question 91 — Customer emails in lowercase
+SELECT
+    customer_id,
+    LOWER(email) AS lowercase_email
+FROM customers;
+Question 92 — Product names in uppercase
+SELECT
+    product_id,
+    UPPER(product_name) AS uppercase_product_name
+FROM products;
+Question 93 — Length of every product name
+SELECT
+    product_id,
+    product_name,
+    LENGTH(product_name) AS name_length
+FROM products;
+Question 94 — Extract email domain
+SELECT
+    customer_id,
+    email,
+    SPLIT_PART(email, '@', 2) AS email_domain
+FROM customers;
+Part 21: NULL Handling
+Question 95 — Customers with no phone number
+SELECT *
+FROM customers
+WHERE phone IS NULL;
+Question 96 — Display "Not Available" for NULL phone
+SELECT
+    customer_id,
+    first_name,
+    last_name,
+    COALESCE(phone, 'Not Available') AS phone
+FROM customers;
+Question 97 — Products that never received a review
+SELECT
+    p.product_id,
+    p.product_name
+FROM products p
+LEFT JOIN reviews r
+    ON p.product_id = r.product_id
+WHERE r.review_id IS NULL;
+Part 22: Set Operations
+Question 98 — UNION
+SELECT city
+FROM customers
+
+UNION
+
+SELECT shipping_city
+FROM orders
+ORDER BY city;
+
+UNION removes duplicate cities.
+
+Question 99 — UNION ALL
+SELECT city
+FROM customers
+
+UNION ALL
+
+SELECT shipping_city
+FROM orders
+ORDER BY city;
+
+UNION ALL keeps duplicates.
+
+Question 100 — INTERSECT
+SELECT city
+FROM customers
+
+INTERSECT
+
+SELECT shipping_city
+FROM orders
+ORDER BY city;
+Question 101 — EXCEPT
+SELECT city
+FROM customers
+
+EXCEPT
+
+SELECT shipping_city
+FROM orders
+ORDER BY city;
+Part 23: Transactions
+Question 102 — Successful transaction
+
+This example uses customer 1 and product 1. Change the IDs if necessary.
+
+BEGIN;
+
+INSERT INTO orders (
+    customer_id,
+    order_date,
+    order_status,
+    shipping_city,
+    shipping_country,
+    total_amount
+)
+VALUES (
+    1,
+    CURRENT_TIMESTAMP,
+    'Processing',
+    'Mumbai',
+    'India',
+    2000.00
+)
+RETURNING order_id;
+
+Suppose the returned order_id is 41.
+
+INSERT INTO order_items (
+    order_id,
+    product_id,
+    quantity,
+    unit_price,
+    discount
+)
+VALUES (
+    41,
+    1,
+    2,
+    1000.00,
+    0
+);
+
+UPDATE products
+SET stock_quantity = stock_quantity - 2
+WHERE product_id = 1
+  AND stock_quantity >= 2;
+
+INSERT INTO payments (
+    order_id,
+    payment_date,
+    payment_method,
+    payment_status,
+    amount,
+    transaction_reference
+)
+VALUES (
+    41,
+    CURRENT_TIMESTAMP,
+    'UPI',
+    'Completed',
+    2000.00,
+    'TXN-41'
+);
+
+COMMIT;
+Question 103 — Failed transaction and ROLLBACK
+BEGIN;
+
+INSERT INTO orders (
+    customer_id,
+    order_date,
+    order_status,
+    shipping_city,
+    shipping_country,
+    total_amount
+)
+VALUES (
+    1,
+    CURRENT_TIMESTAMP,
+    'Processing',
+    'Mumbai',
+    'India',
+    5000.00
+);
+
+-- Intentional error:
+INSERT INTO order_items (
+    order_id,
+    product_id,
+    quantity,
+    unit_price,
+    discount
+)
+VALUES (
+    999999,
+    1,
+    2,
+    2500.00,
+    0
+);
+
+ROLLBACK;
+
+The transaction is rolled back, so the incomplete order operation is not retained.
+
+Part 24: Advanced Business Queries
+Question 104 — Top five customers by total spending
+SELECT
+    c.customer_id,
+    c.first_name || ' ' || c.last_name AS customer_name,
+    SUM(o.total_amount) AS total_spending
+FROM customers c
+JOIN orders o
+    ON c.customer_id = o.customer_id
+GROUP BY
+    c.customer_id,
+    c.first_name,
+    c.last_name
+ORDER BY total_spending DESC
+LIMIT 5;
+Question 105 — Top five best-selling products by quantity
+SELECT
+    p.product_id,
+    p.product_name,
+    SUM(oi.quantity) AS total_quantity_sold
+FROM products p
+JOIN order_items oi
+    ON p.product_id = oi.product_id
+GROUP BY
+    p.product_id,
+    p.product_name
+ORDER BY total_quantity_sold DESC
+LIMIT 5;
+Question 106 — Top five products by total revenue
+SELECT
+    p.product_id,
+    p.product_name,
+    SUM(
+        oi.quantity *
+        oi.unit_price *
+        (1 - oi.discount / 100.0)
+    ) AS total_revenue
+FROM products p
+JOIN order_items oi
+    ON p.product_id = oi.product_id
+GROUP BY
+    p.product_id,
+    p.product_name
+ORDER BY total_revenue DESC
+LIMIT 5;
+Question 107 — Category generating the most revenue
+SELECT
+    c.category_id,
+    c.category_name,
+    SUM(
+        oi.quantity *
+        oi.unit_price *
+        (1 - oi.discount / 100.0)
+    ) AS total_revenue
+FROM categories c
+JOIN products p
+    ON c.category_id = p.category_id
+JOIN order_items oi
+    ON p.product_id = oi.product_id
+GROUP BY
+    c.category_id,
+    c.category_name
+ORDER BY total_revenue DESC
+LIMIT 1;
+Question 108 — Customers who ordered more than five different products
+SELECT
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    COUNT(DISTINCT oi.product_id) AS different_products
+FROM customers c
+JOIN orders o
+    ON c.customer_id = o.customer_id
+JOIN order_items oi
+    ON o.order_id = oi.order_id
+GROUP BY
+    c.customer_id,
+    c.first_name,
+    c.last_name
+HAVING COUNT(DISTINCT oi.product_id) > 5;
+Question 109 — Products ordered by more than ten different customers
+SELECT
+    p.product_id,
+    p.product_name,
+    COUNT(DISTINCT o.customer_id) AS different_customers
+FROM products p
+JOIN order_items oi
+    ON p.product_id = oi.product_id
+JOIN orders o
+    ON oi.order_id = o.order_id
+GROUP BY
+    p.product_id,
+    p.product_name
+HAVING COUNT(DISTINCT o.customer_id) > 10;
+Question 110 — Customers buying from at least three categories
+SELECT
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    COUNT(DISTINCT p.category_id) AS category_count
+FROM customers c
+JOIN orders o
+    ON c.customer_id = o.customer_id
+JOIN order_items oi
+    ON o.order_id = oi.order_id
+JOIN products p
+    ON oi.product_id = p.product_id
+GROUP BY
+    c.customer_id,
+    c.first_name,
+    c.last_name
+HAVING COUNT(DISTINCT p.category_id) >= 3;
+Question 111 — Most popular product in every category
+
+Popularity is based on total quantity sold.
+
+WITH product_sales AS (
+    SELECT
+        p.product_id,
+        p.product_name,
+        p.category_id,
+        SUM(oi.quantity) AS total_quantity_sold
+    FROM products p
+    JOIN order_items oi
+        ON p.product_id = oi.product_id
+    GROUP BY
+        p.product_id,
+        p.product_name,
+        p.category_id
+),
+ranked_products AS (
+    SELECT
+        *,
+        RANK() OVER (
+            PARTITION BY category_id
+            ORDER BY total_quantity_sold DESC
+        ) AS product_rank
+    FROM product_sales
+)
+SELECT *
+FROM ranked_products
+WHERE product_rank = 1;
+Question 112 — Customers who purchased the same product more than once
+SELECT
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    oi.product_id,
+    p.product_name,
+    SUM(oi.quantity) AS total_quantity
+FROM customers c
+JOIN orders o
+    ON c.customer_id = o.customer_id
+JOIN order_items oi
+    ON o.order_id = oi.order_id
+JOIN products p
+    ON oi.product_id = p.product_id
+GROUP BY
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    oi.product_id,
+    p.product_name
+HAVING SUM(oi.quantity) > 1;
+Question 113 — Customers spending above average customer spending
+WITH customer_spending AS (
+    SELECT
+        c.customer_id,
+        c.first_name,
+        c.last_name,
+        COALESCE(SUM(o.total_amount), 0) AS total_spending
+    FROM customers c
+    LEFT JOIN orders o
+        ON c.customer_id = o.customer_id
+    GROUP BY
+        c.customer_id,
+        c.first_name,
+        c.last_name
+)
+SELECT *
+FROM customer_spending
+WHERE total_spending > (
+    SELECT AVG(total_spending)
+    FROM customer_spending
+);
+Question 114 — Second-highest priced product
+Method 1 — Subquery
+SELECT *
+FROM products
+WHERE price = (
+    SELECT MAX(price)
+    FROM products
+    WHERE price < (
+        SELECT MAX(price)
+        FROM products
+    )
+);
+Method 2 — Window function
+WITH ranked_products AS (
+    SELECT
+        *,
+        DENSE_RANK() OVER (
+            ORDER BY price DESC
+        ) AS price_rank
+    FROM products
+)
+SELECT *
+FROM ranked_products
+WHERE price_rank = 2;
+Question 115 — Third-highest spending customer
+WITH customer_spending AS (
+    SELECT
+        c.customer_id,
+        c.first_name,
+        c.last_name,
+        SUM(o.total_amount) AS total_spending
+    FROM customers c
+    JOIN orders o
+        ON c.customer_id = o.customer_id
+    GROUP BY
+        c.customer_id,
+        c.first_name,
+        c.last_name
+),
+ranked_customers AS (
+    SELECT
+        *,
+        DENSE_RANK() OVER (
+            ORDER BY total_spending DESC
+        ) AS spending_rank
+    FROM customer_spending
+)
+SELECT *
+FROM ranked_customers
+WHERE spending_rank = 3;
+Question 116 — Month with highest revenue
+SELECT
+    DATE_TRUNC('month', order_date) AS sales_month,
+    SUM(total_amount) AS total_revenue
+FROM orders
+GROUP BY DATE_TRUNC('month', order_date)
+ORDER BY total_revenue DESC
+LIMIT 1;
+Question 117 — Product with highest average review rating
+
+Only products with at least 3 reviews:
+
+SELECT
+    p.product_id,
+    p.product_name,
+    AVG(r.rating) AS average_rating,
+    COUNT(r.review_id) AS review_count
+FROM products p
+JOIN reviews r
+    ON p.product_id = r.product_id
+GROUP BY
+    p.product_id,
+    p.product_name
+HAVING COUNT(r.review_id) >= 3
+ORDER BY average_rating DESC
+LIMIT 1;
+Question 118 — Customers with orders but no reviews
+SELECT
+    c.customer_id,
+    c.first_name,
+    c.last_name
+FROM customers c
+WHERE EXISTS (
+    SELECT 1
+    FROM orders o
+    WHERE o.customer_id = c.customer_id
+)
+AND NOT EXISTS (
+    SELECT 1
+    FROM reviews r
+    WHERE r.customer_id = c.customer_id
+);
+Question 119 — Low-stock products with high sales
+
+Requirements:
+
+Low stock  = fewer than 10 units
+High sales = more than 20 units sold
+SELECT
+    p.product_id,
+    p.product_name,
+    p.stock_quantity,
+    SUM(oi.quantity) AS total_quantity_sold
+FROM products p
+JOIN order_items oi
+    ON p.product_id = oi.product_id
+WHERE p.stock_quantity < 10
+GROUP BY
+    p.product_id,
+    p.product_name,
+    p.stock_quantity
+HAVING SUM(oi.quantity) > 20;
+Question 120 — Customers whose latest order was cancelled
+WITH latest_orders AS (
+    SELECT
+        o.*,
+        ROW_NUMBER() OVER (
+            PARTITION BY customer_id
+            ORDER BY order_date DESC, order_id DESC
+        ) AS rn
+    FROM orders o
+)
+SELECT
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    lo.order_id,
+    lo.order_date,
+    lo.order_status
+FROM customers c
+JOIN latest_orders lo
+    ON c.customer_id = lo.customer_id
+WHERE lo.rn = 1
+  AND lo.order_status = 'Cancelled';
